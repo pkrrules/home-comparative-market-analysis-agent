@@ -16,7 +16,7 @@ does not estimate the value of arbitrary real homes.
 - [x] Phase 1 (Repliers) — migration audit
 - [x] Phase 2 — canonical schema, provider interface, validation/dedup
 - [x] Phase 2b — migrated active provider from SimplyRETS to Repliers
-- [ ] Phase 3 — comparable analysis engine
+- [x] Phase 3 — comparable analysis engine (Agent 2)
 - [ ] Phase 4 — LangGraph orchestration + human-in-the-loop
 - [ ] Phase 5 — Streamlit briefing UI
 
@@ -84,3 +84,36 @@ the missing-vs-implausible split between Agent 1 and Agent 2, dedup's
 matching key) — all still accurate for the current Repliers-backed code,
 since the canonical schema, dedup, and eligibility-relevant validation
 logic are provider-agnostic and didn't need to change in the migration.
+
+## Phase 3: comparable analysis engine (Agent 2)
+
+```bash
+python3 -m unittest discover -s tests -v   # 78 tests, all deterministic/fixture-based — no network
+```
+
+```python
+import sys; sys.path.insert(0, "src")
+from datetime import date
+from data_agent import PropertyDataAgent
+from repliers_provider import RepliersProvider
+from repliers_mapping import map_repliers_listing
+from comparable_engine import fetch_and_evaluate, SEARCH_EXPANSION_STEPS
+
+agent = PropertyDataAgent(RepliersProvider(), map_repliers_listing)
+subject = agent.find_subject("CAR3006094")
+analysis_date = date.today()  # or a dataset-derived date — see phase1-repliers-audit.md §9
+
+for step in SEARCH_EXPANSION_STEPS:
+    result = fetch_and_evaluate(agent, subject, step, analysis_date)
+    print(step.label, "->", len(result.selected), "selected, sufficient =", result.sufficient)
+    if result.sufficient:
+        break
+```
+
+See [docs/phase3-design-notes.md](docs/phase3-design-notes.md) for the
+eligibility rules, the deterministic scoring formula and its weights, the
+confidence model, and a real run against frozen data reproducing the
+project plan's own human-in-the-loop example (0 comps at 3mi/90d → 2 at
+5mi/90d → 10 at 5mi/6mo). Agent 2 evaluates one search step at a time and
+does not decide on its own to expand — that pause-for-approval loop is
+Phase 4's job.
