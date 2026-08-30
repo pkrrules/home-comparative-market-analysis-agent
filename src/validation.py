@@ -30,13 +30,22 @@ HARD_REQUIRED_FIELDS = [
 ]
 
 # type -> subtypes considered internally consistent for that type code.
-# `None` subtype is always allowed (SimplyRETS leaves it blank often).
-# See Phase 1 audit §3b: type=CND paired with SingleFamilyResidence/Townhouse
-# occurs in this trial feed and is not a plausible combination.
+# `None` subtype is always allowed. `None` as the *value* (not a set) means
+# "no constraint for this type". Provider vocabularies are disjoint, so both
+# can share one table without collision:
+#   - SimplyRETS (kept for reference): type is "RES"/"RNT"/"CND".
+#     Phase 1 audit §3b found type=CND paired with SingleFamilyResidence/
+#     Townhouse in the trial feed — not a plausible combination.
+#   - Repliers (active provider): type is details.propertyType
+#     ("Residential"/"Land"/"Residential Lease"/"Residential Income"),
+#     subtype is `class` ("ResidentialProperty"/"CondoProperty"). See
+#     docs/phase2b-repliers-migration.md §3b — a "Land" listing tagged
+#     CondoProperty (a condo unit that is also vacant land) is implausible.
 _CONSISTENT_SUBTYPES_BY_TYPE = {
     "CND": {None, "Condominium"},
     "RNT": None,  # no constraint — rentals span house/condo/apartment
     "RES": None,  # no constraint — RES is used broadly across subtypes here
+    "Land": {None, "ResidentialProperty"},
 }
 
 _CURRENT_YEAR = datetime.now(timezone.utc).year

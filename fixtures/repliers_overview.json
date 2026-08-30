@@ -1,0 +1,26 @@
+{
+  "all": {
+    "count": 42886,
+    "numPages": 42886
+  },
+  "standardStatus=Closed": {
+    "count": 25388,
+    "numPages": 25388
+  },
+  "standardStatus=Closed,type=sale": {
+    "count": 22975,
+    "numPages": 22975
+  },
+  "standardStatus=Closed,type=lease": {
+    "count": 2413,
+    "numPages": 2413
+  },
+  "standardStatus=Closed,type=sale,propertyType=Residential": {
+    "count": 19292,
+    "numPages": 19292
+  },
+  "status=U": {
+    "count": 26817,
+    "numPages": 26817
+  }
+}

@@ -1,14 +1,21 @@
 # Market Research Agent — Comparable Home Analysis (MVP)
 
 A demo application that finds comparable closed home sales for a subject
-property, using the SimplyRETS demo real-estate API, and produces a
-traceable one-page briefing. See the project plan for full architecture
-and framing; this repo currently covers **Phase 1: API audit**.
+property, using a real-estate data API, and produces a traceable one-page
+briefing. See the project plan for full architecture and framing.
+
+**Active provider: [Repliers](https://repliers.com)** (migrated from
+SimplyRETS — see [docs/phase2b-repliers-migration.md](docs/phase2b-repliers-migration.md)
+for why and what changed). Both are sample/sandbox data, not real
+transactions — this MVP demonstrates the comparable-analysis workflow, it
+does not estimate the value of arbitrary real homes.
 
 ## Status
 
-- [x] Phase 1 — SimplyRETS demo feed audit
+- [x] Phase 1 — SimplyRETS demo feed audit (archived; see migration doc)
+- [x] Phase 1 (Repliers) — migration audit
 - [x] Phase 2 — canonical schema, provider interface, validation/dedup
+- [x] Phase 2b — migrated active provider from SimplyRETS to Repliers
 - [ ] Phase 3 — comparable analysis engine
 - [ ] Phase 4 — LangGraph orchestration + human-in-the-loop
 - [ ] Phase 5 — Streamlit briefing UI
@@ -16,58 +23,64 @@ and framing; this repo currently covers **Phase 1: API audit**.
 ## Setup
 
 ```bash
-cp .env.example .env   # public SimplyRETS demo credentials, already filled in
+cp .env.example .env
+# fill in REPLIERS_API_KEY with your own key from https://repliers.com
 python3 -m venv .venv && source .venv/bin/activate  # if pip is available
 pip install -r requirements.txt                      # only dependency: requests
 ```
 
-No API key signup is required — SimplyRETS publishes open demo credentials
-(`simplyrets` / `simplyrets`) for `https://api.simplyrets.com`.
+Repliers requires your own signup and API key (`REPLIERS-API-KEY` header).
+SimplyRETS's public demo credentials (`simplyrets`/`simplyrets`) still work
+for the archived reference path, no signup needed.
 
-## Phase 1: API audit
+**Rate limit:** a personal Repliers key is capped around 1800 requests per
+rolling window (`X-RateLimit-*` response headers). `RepliersProvider`
+fans one call out into several HTTP requests when paginating past 100
+results — be mindful of `limit` when experimenting live; prefer the
+frozen fixtures / `RepliersFixtureProvider` for anything repetitive.
+
+## Phase 1 (Repliers): migration audit
 
 ```bash
-python3 scripts/fetch_fixtures.py   # hits the live demo API, freezes fixtures/
-python3 scripts/audit_phase1.py     # reads fixtures/, writes docs/phase1-api-audit.md
+python3 scripts/fetch_repliers_fixtures.py   # hits the live API, freezes fixtures/repliers_*.json
+python3 scripts/audit_repliers.py            # reads fixtures/, writes docs/phase1-repliers-audit.md
 ```
 
-- `src/simplyrets_client.py` — thin, tailored SimplyRETS client (Basic auth,
-  retries, the handful of endpoints this project needs). Not a generic SDK.
-- `fixtures/` — frozen raw API responses (metadata, all 78 listings across
-  every status, one single-property detail call, and raw probe results).
-  These are the basis for later test fixtures too.
-- `docs/phase1-api-audit.md` — the audit findings: feed size, geography,
-  closed-sale population, field completeness, price-field semantics,
-  address searchability, pagination behavior, IDX/attribution fields,
-  the recommended demonstration analysis date, and a preset "try an
-  example" subject-property shortlist.
+See [docs/phase1-repliers-audit.md](docs/phase1-repliers-audit.md) for
+findings (feed size, geography, closed-sale population, field
+completeness, price semantics, address searchability, radius search,
+pagination, IDX/attribution fields, the demonstration clock
+recommendation, and a live-validated "try an example" picker) and
+[docs/phase2b-repliers-migration.md](docs/phase2b-repliers-migration.md)
+for the migration decision and two real bugs caught while building it
+(a wrong pagination parameter name, and unreliable address search).
 
-Key findings (see the report for detail): the trial feed has only 13
-closed sales total (8 of them `type=RES`) spanning 1990–2013, so the
-demonstration analysis date is fixed at the dataset's latest close date
-(**2013-09-27**), not `datetime.now()`. `property.type`/`property.subType`
-are not internally consistent in this synthetic data — Phase 2's
-plausibility checks need to account for that.
+The original SimplyRETS audit is preserved at
+[docs/phase1-api-audit.md](docs/phase1-api-audit.md) (archived, no longer
+the active provider — `src/simplyrets_*.py` still work standalone if
+you want to run it).
 
 ## Phase 2: canonical schema, provider interface, validation & dedup
 
 ```bash
-python3 -m unittest discover -s tests -v   # 34 tests, all against fixtures — no network
+python3 -m unittest discover -s tests -v   # 52 tests, all against fixtures — no network
 ```
 
 ```python
 import sys; sys.path.insert(0, "src")
 from data_agent import PropertyDataAgent
-from simplyrets_provider import SimplyRETSProvider   # or fixture_provider.FixtureProvider for offline
+from repliers_provider import RepliersProvider          # or repliers_fixture_provider.RepliersFixtureProvider for offline
+from repliers_mapping import map_repliers_listing
 
-agent = PropertyDataAgent(SimplyRETSProvider())
-subject = agent.find_subject("1005192")              # by mlsId or address text
-result = agent.load_closed_sales()                    # -> ClosedSalesResult
+agent = PropertyDataAgent(RepliersProvider(), map_repliers_listing)
+subject = agent.find_subject("CAR3006094")                          # by MLS number — see migration doc §2 for why not free-text
+result = agent.load_closed_sales(cities=["Charlotte"], property_type="Residential", limit=100)
 print(len(result.properties), result.dropped_hard_requirements, result.dedup_drops)
 ```
 
 See [docs/phase2-design-notes.md](docs/phase2-design-notes.md) for the
-module layout and the design decisions that came out of building this
-against the real feed (provider interface scope, the missing-vs-implausible
-split between Agent 1 and Agent 2, the two data-inconsistency checks the
-validator catches, dedup's matching key).
+original module layout and design decisions (provider interface scope,
+the missing-vs-implausible split between Agent 1 and Agent 2, dedup's
+matching key) — all still accurate for the current Repliers-backed code,
+since the canonical schema, dedup, and eligibility-relevant validation
+logic are provider-agnostic and didn't need to change in the migration.

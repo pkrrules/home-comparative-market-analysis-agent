@@ -2,7 +2,7 @@ import json
 import unittest
 
 import _pathfix  # noqa: F401  (sets sys.path)
-from mapping import map_simplyrets_listing
+from simplyrets_mapping import map_simplyrets_listing
 
 
 class TestMapping(unittest.TestCase):

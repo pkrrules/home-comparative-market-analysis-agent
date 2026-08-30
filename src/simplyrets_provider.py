@@ -1,4 +1,13 @@
-"""SimplyRETS implementation of the PropertyDataProvider interface."""
+"""
+SimplyRETS implementation of the PropertyDataProvider interface.
+
+Kept for reference (see docs/phase1-api-audit.md, docs/phase2-design-notes.md)
+after the project's active provider moved to Repliers
+(docs/phase2b-repliers-migration.md) — SimplyRETS' trial tier turned out not
+to support real geo-radius filtering or a usably large closed-sales
+population for this project's needs. No longer used by data_agent.py's
+default wiring, but still a valid, testable PropertyDataProvider.
+"""
 from __future__ import annotations
 
 from typing import Any
@@ -28,13 +37,22 @@ class SimplyRETSProvider(PropertyDataProvider):
         *,
         cities: list[str] | None = None,
         postal_codes: list[str] | None = None,
+        lat: float | None = None,
+        lng: float | None = None,
+        radius_km: float | None = None,
+        property_type: str | None = None,
         limit: int = 500,
     ) -> list[dict[str, Any]]:
+        # lat/lng/radius_km are accepted (interface conformance) but ignored:
+        # Phase 1 audit confirmed SimplyRETS' trial tier silently ignores
+        # radius/lat/lng/polygon params rather than filtering on them.
         params: dict[str, Any] = {"status": "Closed", "limit": limit}
         if cities:
             params["cities"] = cities
         if postal_codes:
             params["postalCodes"] = postal_codes
+        if property_type:
+            params["type"] = property_type
         return self.client.search_properties(**params)
 
     def get_feed_metadata(self) -> dict[str, Any]:

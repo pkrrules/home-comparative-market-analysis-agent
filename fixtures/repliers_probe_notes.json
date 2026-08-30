@@ -1,0 +1,58 @@
+{
+  "demo_anchor_city": "Charlotte",
+  "demo_anchor_city_sample_count": 200,
+  "single_listing_detail_failures": [
+    {
+      "mlsNumber": "CAR3666470",
+      "status": 404
+    }
+  ],
+  "radius_search_probe": {
+    "center": {
+      "lat": 35.053492,
+      "lng": -80.828155
+    },
+    "counts_by_radius": {
+      "tiny_0.01km": 1,
+      "5km": 143,
+      "50km": 3080
+    }
+  },
+  "address_search_probe": {
+    "streetNumber_only": {
+      "count": 4,
+      "unrecognizedParams": []
+    },
+    "streetName_only": {
+      "count": 0,
+      "unrecognizedParams": []
+    },
+    "address_free_text": {
+      "count": 42886,
+      "unrecognizedParams": [
+        "query.address"
+      ]
+    },
+    "mlsNumber_as_search_param": {
+      "count": 0,
+      "unrecognizedParams": []
+    }
+  },
+  "price_ratio_probe": {
+    "n": 300,
+    "min": 0.48484848484848486,
+    "median": 1.0,
+    "max": 1.136,
+    "outside_0.3_to_3.0": 0
+  },
+  "sold_before_listed_probe": {
+    "violations": 289,
+    "checked": 300,
+    "note": "soldDate earlier than listDate \u2014 a data-quality caveat of this sample dataset, not a per-record plausibility rule (see migration notes)."
+  },
+  "class_propertytype_combo": {
+    "ResidentialProperty|Residential": 170,
+    "CondoProperty|Residential": 130
+  },
+  "sample_data_marker_count": "298/300"
+}

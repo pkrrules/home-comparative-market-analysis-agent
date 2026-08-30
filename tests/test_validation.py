@@ -122,6 +122,29 @@ class TestImplausibleFields(unittest.TestCase):
         flags = flag_fields(prop)
         self.assertEqual(flags["type_subtype_consistency"].status, FieldStatus.PRESENT)
 
+    def test_repliers_land_condoproperty_mismatch_is_implausible(self):
+        # A "Land" listing (Repliers details.propertyType) tagged as a condo
+        # unit (class=CondoProperty) is not a plausible combination.
+        prop = make_property()
+        prop.characteristics.property_type = "Land"
+        prop.characteristics.property_subtype = "CondoProperty"
+        flags = flag_fields(prop)
+        self.assertEqual(flags["type_subtype_consistency"].status, FieldStatus.IMPLAUSIBLE)
+
+    def test_repliers_land_residentialproperty_pair_is_plausible(self):
+        prop = make_property()
+        prop.characteristics.property_type = "Land"
+        prop.characteristics.property_subtype = "ResidentialProperty"
+        flags = flag_fields(prop)
+        self.assertEqual(flags["type_subtype_consistency"].status, FieldStatus.PRESENT)
+
+    def test_repliers_residential_type_has_no_subtype_constraint(self):
+        prop = make_property()
+        prop.characteristics.property_type = "Residential"
+        prop.characteristics.property_subtype = "CondoProperty"
+        flags = flag_fields(prop)
+        self.assertEqual(flags["type_subtype_consistency"].status, FieldStatus.PRESENT)
+
     def test_active_status_with_populated_sales_data_is_implausible(self):
         # Phase 1 audit: fixtures/single_property_sample.json is exactly this case.
         prop = make_property()

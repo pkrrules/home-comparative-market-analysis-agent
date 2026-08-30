@@ -1,21 +1,25 @@
 """
-End-to-end Agent 1 pipeline test, run entirely against frozen fixtures
-(FixtureProvider) — no network. Numbers here are cross-checked against the
-Phase 1 audit report (docs/phase1-api-audit.md) so this doubles as a
-regression check that Phase 2's logic agrees with the audited data.
+End-to-end Agent 1 pipeline test for the (archived, reference-only)
+SimplyRETS provider, run entirely against frozen fixtures
+(SimplyRETSFixtureProvider) — no network. Numbers here are cross-checked
+against the Phase 1 audit report (docs/phase1-api-audit.md) so this doubles
+as a regression check that Phase 2's logic agrees with the audited data.
+
+See test_repliers_data_agent.py for the active provider's equivalent test.
 """
 import unittest
 
 import _pathfix  # noqa: F401
 from canonical_schema import FieldStatus
 from data_agent import PropertyDataAgent
-from fixture_provider import FixtureProvider
+from simplyrets_fixture_provider import SimplyRETSFixtureProvider
+from simplyrets_mapping import map_simplyrets_listing
 
 
 class TestPropertyDataAgentAgainstFixtures(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.agent = PropertyDataAgent(FixtureProvider())
+        cls.agent = PropertyDataAgent(SimplyRETSFixtureProvider(), map_simplyrets_listing)
 
     def test_find_subject_by_mls_id(self):
         subject = self.agent.find_subject("1005192")

@@ -1,15 +1,10 @@
 """
-Frozen-fixture implementation of PropertyDataProvider.
+Frozen-fixture implementation of PropertyDataProvider, backed by the
+SimplyRETS fixtures from Phase 1/2 (fixtures/properties_all.json etc.).
 
-Reads the fixtures captured by scripts/fetch_fixtures.py instead of calling
-the live API. This is what "frozen responses as test fixtures" (project
-plan) means in code: Agent 1's logic can be tested, and the app can be run
-in an offline demo mode, against a fixed snapshot of the SimplyRETS trial
-feed rather than a live, mutable one.
-
-Filtering mirrors the real provider's server-side behavior closely enough
-for tests (status, cities, postalCodes, q substring match on address.full),
-but is not a reimplementation of SimplyRETS — just enough to exercise Agent 1.
+Kept for reference alongside simplyrets_provider.py — see
+docs/phase2b-repliers-migration.md for why the active provider moved to
+Repliers. For current test/offline-demo use, see repliers_fixture_provider.py.
 """
 from __future__ import annotations
 
@@ -22,7 +17,7 @@ from provider import PropertyDataProvider
 DEFAULT_FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures"
 
 
-class FixtureProvider(PropertyDataProvider):
+class SimplyRETSFixtureProvider(PropertyDataProvider):
     def __init__(self, fixtures_dir: Path | str = DEFAULT_FIXTURES_DIR):
         fixtures_dir = Path(fixtures_dir)
         self._all_listings: list[dict[str, Any]] = json.loads(
@@ -48,8 +43,13 @@ class FixtureProvider(PropertyDataProvider):
         *,
         cities: list[str] | None = None,
         postal_codes: list[str] | None = None,
+        lat: float | None = None,
+        lng: float | None = None,
+        radius_km: float | None = None,
+        property_type: str | None = None,
         limit: int = 500,
     ) -> list[dict[str, Any]]:
+        # lat/lng/radius_km ignored — see provider.py / simplyrets_provider.py.
         results = [l for l in self._all_listings if l.get("mls", {}).get("status") == "Closed"]
         if cities:
             wanted = {c.lower() for c in cities}
@@ -57,6 +57,8 @@ class FixtureProvider(PropertyDataProvider):
         if postal_codes:
             wanted_zips = set(postal_codes)
             results = [l for l in results if l["address"].get("postalCode") in wanted_zips]
+        if property_type:
+            results = [l for l in results if l.get("property", {}).get("type") == property_type]
         return results[:limit]
 
     def get_feed_metadata(self) -> dict[str, Any]:

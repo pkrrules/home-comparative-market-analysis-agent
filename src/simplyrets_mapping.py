@@ -1,6 +1,9 @@
 """
 Maps raw SimplyRETS listing dicts into CanonicalProperty records.
 
+Kept for reference — see docs/phase2b-repliers-migration.md; for the
+active provider's mapping, see repliers_mapping.py.
+
 Pure and side-effect free: no network calls, no field-plausibility judgment
 (that's validation.py). This module only answers "what did the provider
 literally say", copied into the canonical shape with provider-specific
