@@ -18,7 +18,7 @@ does not estimate the value of arbitrary real homes.
 - [x] Phase 2b — migrated active provider from SimplyRETS to Repliers
 - [x] Phase 3 — comparable analysis engine (Agent 2)
 - [x] Phase 4 — LangGraph orchestration + human-in-the-loop (Agent 3)
-- [ ] Phase 5 — Streamlit briefing UI
+- [x] Phase 5 — Streamlit briefing UI
 
 ## Setup
 
@@ -26,8 +26,19 @@ does not estimate the value of arbitrary real homes.
 cp .env.example .env
 # fill in REPLIERS_API_KEY with your own key from https://repliers.com
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt   # requests + langgraph
+.venv/bin/pip install -r requirements.txt   # requests + langgraph + streamlit
 ```
+
+## Run the demo
+
+```bash
+.venv/bin/streamlit run app.py
+```
+
+Opens in your browser. Defaults to the frozen fixture data source (no API
+quota used, reliable for repeated demos) with a curated "try an example"
+subject picker — flip to live Repliers in the sidebar any time. See
+[docs/phase5-design-notes.md](docs/phase5-design-notes.md).
 
 Repliers requires your own signup and API key (`REPLIERS-API-KEY` header).
 SimplyRETS's public demo credentials (`simplyrets`/`simplyrets`) still work
@@ -160,3 +171,29 @@ silently corrupting state; a fixture-provider/limit interaction that
 produced a misleadingly "no comparables anywhere" result), and a verified
 end-to-end run reproducing Phase 3's exact numbers through two real
 interrupt/resume pauses.
+
+## Phase 5: Streamlit briefing UI
+
+```bash
+.venv/bin/streamlit run app.py                       # the real app
+.venv/bin/python -m unittest discover -s tests -v     # 98 tests total (7 new, via Streamlit's AppTest — no browser needed)
+```
+
+The UI drives `orchestrator.py`'s graph directly with real button clicks
+(`graph.invoke` / `Command(resume=...)`, cached across Streamlit's rerun
+model via `st.cache_resource` so an in-progress approval isn't lost
+between clicks) — not the synchronous `run_interactive` helper, which
+remains a test/notebook convenience. Defaults to the frozen fixture data
+source; a sidebar toggle switches to live Repliers. See
+[docs/phase5-design-notes.md](docs/phase5-design-notes.md) for why the
+graph must be cached (not rebuilt) across reruns, and what got verified
+both via scripted `AppTest` runs and a real `streamlit run` launch.
+
+---
+
+All five phases of the plan are now implemented: API tool use,
+multi-agent delegation (Agent 1 data/validation, Agent 2 comparable
+analysis, Agent 3 orchestration/reporting), stateful LangGraph
+orchestration, conditional search expansion, human-in-the-loop decisions,
+deterministic comparable analysis, structured report generation, and a
+Streamlit front end.
