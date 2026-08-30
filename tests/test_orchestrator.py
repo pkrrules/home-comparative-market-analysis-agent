@@ -91,9 +91,9 @@ class TestExpansionApproved(unittest.TestCase):
         final = run_interactive(graph, "t-radius", "SUBJ", ANALYSIS_DATE, approve)
         self.assertEqual(final["status"], "done")
         self.assertTrue(final["last_result"].sufficient)
-        self.assertEqual(len(questions), 1)
-        self.assertIn("5 miles", questions[0])
-        self.assertIn("within 3 miles and 90 days", questions[0])
+        self.assertEqual(questions, [])
+        automatic = [e for e in final["expansion_log"] if e.decision == "automatic"]
+        self.assertEqual(automatic[0].step_label, "5 miles, 90 days")
 
     def test_date_expansion_wording_mentions_months(self):
         subject = make_property("SUBJ")
@@ -116,7 +116,7 @@ class TestExpansionApproved(unittest.TestCase):
 class TestDeclined(unittest.TestCase):
     def test_declining_expansion_stops_with_insufficient_result(self):
         subject = make_property("SUBJ")
-        candidates = [make_property(f"C{i}", lat=lat_for_miles(4)) for i in range(3)]
+        candidates = [make_property(f"C{i}", lat=lat_for_miles(1), close_date="2025-11-15") for i in range(3)]
         agent = PropertyDataAgent(FakeProvider(subject, candidates), identity_map)
         graph = build_graph(agent, provider_limit=100)
 
@@ -145,8 +145,8 @@ class TestExhausted(unittest.TestCase):
         final = run_interactive(graph, "t-exhausted", "SUBJ", ANALYSIS_DATE, approve)
         self.assertEqual(final["status"], "done")
         self.assertFalse(final["last_result"].sufficient)
-        # One approval request between each of the 4 steps -> 3 approvals total
-        self.assertEqual(len(approvals), len(SEARCH_EXPANSION_STEPS) - 1)
+        # Only temporal expansions pause; radius-only transitions are automatic.
+        self.assertEqual(len(approvals), 2)
         step_entries = [e for e in final["expansion_log"] if e.kind == "step"]
         self.assertEqual(len(step_entries), len(SEARCH_EXPANSION_STEPS))
         self.assertIn("No qualified comparables", final["briefing"])

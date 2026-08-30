@@ -10,6 +10,21 @@ for why and what changed). Both are sample/sandbox data, not real
 transactions — this MVP demonstrates the comparable-analysis workflow, it
 does not estimate the value of arbitrary real homes.
 
+## Demo Scope
+
+This is a **LangGraph-based comparable-analysis application using frozen
+Repliers sample data**. A user selects a known demonstration property or
+enters an exact MLS number, reviews the workflow's search decisions,
+approves the final comparable set, and receives a traceable value briefing.
+
+- Exact MLS numbers and presets are supported; arbitrary address lookup is out of scope.
+- Repliers is the only active provider and fixture mode is the default.
+- The demo evaluates workflow correctness, not real-world market accuracy, and is not an appraisal.
+- Single-family residential property is the primary target.
+- Three approved comparables is the normal minimum and ten is the maximum; fewer than three requires explicit low-evidence confirmation.
+- Fixture mode always uses the frozen dataset's latest valid close date (**2026-03-17**) as the **Demo analysis date**. Live mode alone defaults to today.
+- Data and analysis agents are deterministic. An optional OpenAI API reporting agent adds qualitative commentary from verified facts only; it cannot alter comparable IDs, eligibility, confidence, or calculations, and automatically falls back to the deterministic report.
+
 ## Status
 
 - [x] Phase 1 — SimplyRETS demo feed audit (archived; see migration doc)
@@ -35,9 +50,15 @@ python3 -m venv .venv
 .venv/bin/streamlit run app.py
 ```
 
+To enable AI-assisted commentary, set `OPENAI_API_KEY` in `.env`. The
+reporting model defaults to `gpt-5.4-mini` and can be changed with
+`OPENAI_REPORT_MODEL`. This uses the OpenAI Responses API; a ChatGPT
+subscription is not used as application credentials. Without a valid key,
+the complete deterministic briefing is generated normally.
+
 Opens in your browser. Defaults to the frozen fixture data source (no API
 quota used, reliable for repeated demos) with a curated "try an example"
-subject picker — flip to live Repliers in the sidebar any time. See
+subject picker and fixed 2026-03-17 analysis date — flip to live Repliers in the sidebar any time. See
 [docs/phase5-design-notes.md](docs/phase5-design-notes.md).
 
 Repliers requires your own signup and API key (`REPLIERS-API-KEY` header).
@@ -192,8 +213,8 @@ both via scripted `AppTest` runs and a real `streamlit run` launch.
 ---
 
 All five phases of the plan are now implemented: API tool use,
-multi-agent delegation (Agent 1 data/validation, Agent 2 comparable
-analysis, Agent 3 orchestration/reporting), stateful LangGraph
+deterministic component delegation (data/validation, comparable analysis,
+and orchestration/reporting), stateful LangGraph
 orchestration, conditional search expansion, human-in-the-loop decisions,
 deterministic comparable analysis, structured report generation, and a
 Streamlit front end.

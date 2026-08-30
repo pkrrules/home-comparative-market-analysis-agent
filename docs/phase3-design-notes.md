@@ -92,3 +92,17 @@ example ("Only two qualified comparables were found within three miles
 and 90 days... may the search expand to five miles?"), produced from real
 data rather than asserted in the abstract — a genuine, not contrived,
 demonstration of why progressive expansion is needed on this dataset.
+# Demo-policy update (2026-08-30)
+
+The fixture demo now uses the intentional MVP sequence: 3 mi/90 days,
+5 mi/90 days, 10 mi/90 days, 5 mi/6 months, 10 mi/6 months, and
+10 mi/12 months. It stops as soon as three candidates qualify. Radius-only
+expansions are automatic; temporal expansions require explicit approval. There is no
+15/25-mile or ZIP fallback. Expansion decisions are checkpointed in the
+LangGraph trace, and the final ranked set is separately reviewed before
+valuation.
+
+The valuation is deterministic: it flags 1.5-IQR $/sqft outliers, calculates
+a similarity-weighted $/sqft indication, reports the median as a sanity
+check, uses an interquartile range when at least three clean observations
+exist, and cross-checks the central indication against observed sale prices.

@@ -38,8 +38,10 @@ class SearchStep:
 SEARCH_EXPANSION_STEPS: list[SearchStep] = [
     SearchStep(3, 90, "3 miles, 90 days"),
     SearchStep(5, 90, "5 miles, 90 days"),
+    SearchStep(10, 90, "10 miles, 90 days"),
     SearchStep(5, 180, "5 miles, 6 months"),
-    SearchStep(5, 365, "5 miles, 12 months"),
+    SearchStep(10, 180, "10 miles, 6 months"),
+    SearchStep(10, 365, "10 miles, 12 months"),
 ]
 
 MIN_QUALIFIED = 3

@@ -82,3 +82,28 @@ inspectable, not just assertable in a test.
   and serves HTTP 200 without needing any of the scripted-testing
   machinery — confirms `AppTest`'s results reflect the real app, not just
   the test harness's view of it.
+# Demo UX update (2026-08-30)
+
+Fixture mode is locked to the dataset-derived 2026-03-17 Demo analysis date;
+only live mode defaults to the calendar date. The UI now includes workflow
+progress, a subject summary, comparable inclusion/exclusion review, explicit
+low-evidence confirmation, a confidence-bearing deterministic briefing,
+Markdown download, collapsed diagnostics, and actionable live-provider
+failure guidance.
+
+The ten-case fixture regression contract lives in `src/demo_evaluation.py`
+and is enforced by `tests/test_demo_evaluation.py`. The current frozen sample
+contains no subjects with three qualified sales at 3 or 5 miles within 90
+days of its latest sale date, so the evaluation honestly records the paths
+the fixture can support rather than manufacturing the requested distribution.
+
+## Optional OpenAI reporting agent
+
+`src/reporting_agent.py` uses the OpenAI Responses API when
+`OPENAI_API_KEY` is configured. It receives only a de-identified structured
+fact packet derived from approved comparables and deterministic valuation.
+Structured output is limited to qualitative commentary, and a post-condition
+rejects output containing digits, currency symbols, or percentages. The
+model output is appended to—not substituted for—the checked deterministic
+briefing. Missing credentials, HTTP errors, malformed output, and constraint
+violations all produce the same complete deterministic fallback.

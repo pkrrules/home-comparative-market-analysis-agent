@@ -76,12 +76,67 @@ class BriefingFacts:
     subject_id: str
     selected_ids: list[str]
     median_price_per_sqft: float | None
+    weighted_price_per_sqft: float | None
     low_estimate: float | None
     high_estimate: float | None
     point_estimate: float | None
     analysis_date: date
     final_step_label: str
     sufficient: bool
+
+
+@dataclass
+class ValuationSummary:
+    weighted_price_per_sqft: float | None
+    median_price_per_sqft: float | None
+    low_estimate: float | None
+    high_estimate: float | None
+    point_estimate: float | None
+    outlier_ids: list[str]
+    confidence: str
+
+
+def calculate_valuation(subject: CanonicalProperty, selected: list) -> ValuationSummary:
+    """Reproducible robust valuation. Obvious $/sqft outliers (1.5 IQR)
+    are flagged and excluded from the weighted indication, never hidden."""
+    usable = [sc for sc in selected if sc.price_per_sqft is not None]
+    values = [sc.price_per_sqft for sc in usable]
+    median_ppsf = statistics.median(values) if values else None
+    outlier_ids: list[str] = []
+    retained = usable
+    if len(values) >= 4:
+        quartiles = statistics.quantiles(values, n=4, method="inclusive")
+        q1, q3 = quartiles[0], quartiles[2]
+        lower, upper = q1 - 1.5 * (q3 - q1), q3 + 1.5 * (q3 - q1)
+        retained = [sc for sc in usable if lower <= sc.price_per_sqft <= upper]
+        outlier_ids = [sc.candidate.source_listing_id for sc in usable if sc not in retained]
+    weights = [max(sc.similarity_score, 0.01) for sc in retained]
+    weighted = (
+        sum(sc.price_per_sqft * weight for sc, weight in zip(retained, weights)) / sum(weights)
+        if retained else None
+    )
+    sqft = subject.characteristics.living_area_sqft
+    point = sqft * weighted if sqft and weighted else None
+    low = high = None
+    if sqft and retained:
+        clean = sorted(sc.price_per_sqft for sc in retained)
+        if len(clean) >= 3:
+            qs = statistics.quantiles(clean, n=4, method="inclusive")
+            low, high = sqft * qs[0], sqft * qs[2]
+        else:
+            low, high = sqft * min(clean), sqft * max(clean)
+        sale_prices = sorted(sc.candidate.transaction.close_price for sc in retained if sc.candidate.transaction.close_price)
+        if sale_prices and point is not None:
+            # Cross-check against the observed sale-price distribution; keep
+            # the indication inside a defensible, traceable evidence band.
+            point = min(max(point, sale_prices[0]), sale_prices[-1])
+    if len(retained) < MIN_QUALIFIED:
+        confidence = "low"
+    elif outlier_ids or any(sc.confidence != "high" for sc in retained):
+        confidence = "medium"
+    else:
+        confidence = "high"
+    return ValuationSummary(weighted, median_ppsf, low, high, point, outlier_ids, confidence)
 
 
 def generate_briefing(
@@ -91,15 +146,10 @@ def generate_briefing(
     final_result: ComparableSearchResult,
 ) -> tuple[str, BriefingFacts]:
     selected = final_result.selected
-    ppsfs = [sc.price_per_sqft for sc in selected if sc.price_per_sqft]
-    median_ppsf = statistics.median(ppsfs) if ppsfs else None
-
+    valuation = calculate_valuation(subject, selected)
+    median_ppsf = valuation.median_price_per_sqft
+    low_estimate, high_estimate, point_estimate = valuation.low_estimate, valuation.high_estimate, valuation.point_estimate
     subject_sqft = subject.characteristics.living_area_sqft
-    low_estimate = high_estimate = point_estimate = None
-    if subject_sqft and ppsfs:
-        low_estimate = subject_sqft * min(ppsfs)
-        high_estimate = subject_sqft * max(ppsfs)
-        point_estimate = subject_sqft * median_ppsf
 
     lines: list[str] = []
     lines.append("# Comparable Home Analysis — Demonstration Briefing")
@@ -119,8 +169,11 @@ def generate_briefing(
             status = "sufficient ✅" if entry.sufficient else "insufficient"
             lines.append(f"- **{entry.step_label}** → {entry.found} qualified comparable(s) found ({status})")
         else:
-            verb = "approved" if entry.decision == "granted" else "declined"
-            lines.append(f"  - Search expansion to **{entry.step_label}** {verb} by user")
+            if entry.decision == "automatic":
+                lines.append(f"  - Search radius automatically expanded to **{entry.step_label}**")
+            else:
+                verb = "approved" if entry.decision == "granted" else "declined"
+                lines.append(f"  - Search expansion to **{entry.step_label}** {verb} by user")
     lines.append("")
 
     lines.append(f"## Selected comparables ({len(selected)})")
@@ -147,9 +200,15 @@ def generate_briefing(
     lines.append("")
     if point_estimate is not None:
         lines.append(f"- Subject living area: {subject_sqft:,.0f} sqft")
-        lines.append(f"- Median $/sqft among selected comparables: ${median_ppsf:,.0f}")
-        lines.append(f"- Indicative point estimate: **{_fmt_money(point_estimate)}**")
-        lines.append(f"- Indicative range (min–max comp $/sqft): {_fmt_money(low_estimate)} – {_fmt_money(high_estimate)}")
+        lines.append(f"- Approved comparables: {len(selected)}")
+        lines.append(f"- Similarity-weighted $/sqft: ${valuation.weighted_price_per_sqft:,.0f}")
+        lines.append(f"- Median $/sqft sanity check: ${median_ppsf:,.0f}")
+        lines.append(f"- Central indication: **{_fmt_money(point_estimate)}**")
+        lines.append(f"- Robust indicative range: {_fmt_money(low_estimate)} – {_fmt_money(high_estimate)}")
+        lines.append(f"- Confidence: **{valuation.confidence}**")
+        lines.append("- Method: similarity-weighted $/sqft × subject area; IQR outliers excluded, quartile range, sale-price cross-check.")
+        if valuation.outlier_ids:
+            lines.append(f"- Flagged $/sqft outliers (excluded from calculation): {', '.join(f'`{x}`' for x in valuation.outlier_ids)}")
     else:
         lines.append("_Not computed — insufficient comparables with both a sale price and living area._")
     lines.append("")
@@ -183,6 +242,7 @@ def generate_briefing(
         subject_id=subject.source_listing_id,
         selected_ids=[sc.candidate.source_listing_id for sc in selected],
         median_price_per_sqft=median_ppsf,
+        weighted_price_per_sqft=valuation.weighted_price_per_sqft,
         low_estimate=low_estimate,
         high_estimate=high_estimate,
         point_estimate=point_estimate,

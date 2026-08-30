@@ -11,11 +11,21 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from datetime import date, datetime
 from typing import Any
 
 from provider import PropertyDataProvider
 
 DEFAULT_FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures"
+
+
+def _as_date(value: str | None) -> date | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).date()
+    except ValueError:
+        return None
 
 
 class RepliersFixtureProvider(PropertyDataProvider):
@@ -30,6 +40,8 @@ class RepliersFixtureProvider(PropertyDataProvider):
         self._all_listings: list[dict[str, Any]] = list(by_id.values())
         self._by_id = by_id
         self._metadata: dict[str, Any] = json.loads((fixtures_dir / "repliers_overview.json").read_text())
+        closed_dates = [_as_date(item.get("soldDate")) for item in self._all_listings]
+        self.analysis_date = max(value for value in closed_dates if value is not None)
 
     def find_subject(self, identifier: str) -> dict[str, Any] | None:
         return self._by_id.get(str(identifier).strip())

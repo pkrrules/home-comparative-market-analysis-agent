@@ -7,11 +7,14 @@ clicks would trigger. Runs entirely against the frozen fixture data
 source (default), no network.
 """
 import unittest
+import os
 from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
 APP_PATH = str(Path(__file__).resolve().parent.parent / "app.py")
+# App tests must never spend API quota even when a developer's .env has a key.
+os.environ.setdefault("OPENAI_API_KEY", "")
 
 
 class TestAppLoadsCleanly(unittest.TestCase):
@@ -61,10 +64,19 @@ class TestApproveToCompletion(unittest.TestCase):
 class TestDeclinePath(unittest.TestCase):
     def test_declining_immediately_still_produces_a_briefing(self):
         at = AppTest.from_file(APP_PATH, default_timeout=60).run()
+        wonderwood = next(value for value in at.sidebar.selectbox[0].options if "Wonderwood" in value)
+        at.sidebar.selectbox[0].set_value(wonderwood).run()
         [b for b in at.button if b.label == "Run analysis"][0].click().run()
         decline = [b for b in at.button if b.label.startswith("🛑")]
         self.assertTrue(decline)
         decline[0].click().run()
+        self.assertFalse(at.exception)
+        low_confirmation = [c for c in at.checkbox if c.label == "I confirm a low-evidence report"]
+        self.assertTrue(low_confirmation)
+        low_confirmation[0].check().run()
+        confirm = [b for b in at.button if b.label == "✅ Confirm comparable set"]
+        self.assertTrue(confirm)
+        confirm[0].click().run()
         self.assertFalse(at.exception)
         metrics = {m.label: m.value for m in at.metric}
         self.assertEqual(metrics["Sufficient (≥3 found)"], "No")
@@ -74,11 +86,11 @@ class TestStartOver(unittest.TestCase):
     def test_start_over_clears_state(self):
         at = AppTest.from_file(APP_PATH, default_timeout=60).run()
         [b for b in at.button if b.label == "Run analysis"][0].click().run()
-        self.assertTrue(at.warning)  # an approval prompt should be showing
+        self.assertTrue(at.multiselect)  # comparable review should be showing
 
         [b for b in at.button if b.label == "Start over"][0].click().run()
         self.assertFalse(at.exception)
-        self.assertFalse(at.warning)
+        self.assertFalse(at.multiselect)
         self.assertFalse(at.metric)
 
 
