@@ -8,7 +8,7 @@ and framing; this repo currently covers **Phase 1: API audit**.
 ## Status
 
 - [x] Phase 1 — SimplyRETS demo feed audit
-- [ ] Phase 2 — canonical schema, provider interface, validation/dedup
+- [x] Phase 2 — canonical schema, provider interface, validation/dedup
 - [ ] Phase 3 — comparable analysis engine
 - [ ] Phase 4 — LangGraph orchestration + human-in-the-loop
 - [ ] Phase 5 — Streamlit briefing UI
@@ -48,3 +48,26 @@ demonstration analysis date is fixed at the dataset's latest close date
 (**2013-09-27**), not `datetime.now()`. `property.type`/`property.subType`
 are not internally consistent in this synthetic data — Phase 2's
 plausibility checks need to account for that.
+
+## Phase 2: canonical schema, provider interface, validation & dedup
+
+```bash
+python3 -m unittest discover -s tests -v   # 34 tests, all against fixtures — no network
+```
+
+```python
+import sys; sys.path.insert(0, "src")
+from data_agent import PropertyDataAgent
+from simplyrets_provider import SimplyRETSProvider   # or fixture_provider.FixtureProvider for offline
+
+agent = PropertyDataAgent(SimplyRETSProvider())
+subject = agent.find_subject("1005192")              # by mlsId or address text
+result = agent.load_closed_sales()                    # -> ClosedSalesResult
+print(len(result.properties), result.dropped_hard_requirements, result.dedup_drops)
+```
+
+See [docs/phase2-design-notes.md](docs/phase2-design-notes.md) for the
+module layout and the design decisions that came out of building this
+against the real feed (provider interface scope, the missing-vs-implausible
+split between Agent 1 and Agent 2, the two data-inconsistency checks the
+validator catches, dedup's matching key).
