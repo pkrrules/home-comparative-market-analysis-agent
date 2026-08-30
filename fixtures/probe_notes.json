@@ -1,0 +1,34 @@
+{
+  "metadata_enumerations_populated": {
+    "areaMinor": false,
+    "cities": false,
+    "counties": false,
+    "features": false,
+    "neighborhoods": false,
+    "status": true,
+    "type": true
+  },
+  "default_search_no_status_filter_count": 65,
+  "default_search_statuses_seen": [
+    "Active",
+    "Pending"
+  ],
+  "union_unique_listing_count": 78,
+  "sum_of_per_status_counts": 78,
+  "pagination_probe": {
+    "offset_at_count": "GET /properties -> 400: {\"error\":\"InvalidArguments\",\"errors\":[\"offset too high\"],\"help\":\"Invalid arguments\",\"message\":\"offset too high\"}"
+  },
+  "get_by_mls_id": "ok",
+  "address_search": {
+    "full_address": {
+      "query": "74434 East Sweet Bottom Br #18393",
+      "result_count": 1,
+      "target_found": true
+    },
+    "street_name_only": {
+      "query": "East Sweet Bottom Br",
+      "result_count": 1,
+      "target_found": true
+    }
+  }
+}

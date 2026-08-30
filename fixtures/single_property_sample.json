@@ -1,0 +1,174 @@
+{
+  "address": {
+    "city": "Houston",
+    "country": "United States",
+    "crossStreet": "Dunne Ave",
+    "full": "74434 East Sweet Bottom Br #18393",
+    "postalCode": "77096",
+    "state": "Texas",
+    "streetName": "East Sweet Bottom Br",
+    "streetNumber": 74434,
+    "streetNumberText": "74434",
+    "unit": "18393"
+  },
+  "agent": {
+    "address": null,
+    "contact": {
+      "cell": "(825) 907-4024",
+      "email": "agent@example.com",
+      "office": "(582) 242-9591"
+    },
+    "firstName": "Shoshana",
+    "id": "sphelps",
+    "lastName": "Phelps",
+    "modified": null,
+    "officeMlsId": null
+  },
+  "agreement": "Purchaser Exemptions",
+  "association": {
+    "amenities": "Club House,Community Pool,Garden/ Greenbelt/ Trails,Playground,Recreation Room,Sauna/ Spa/ Hot Tub",
+    "fee": 1000,
+    "frequency": null,
+    "name": "SimplyRETS Home Owners Association"
+  },
+  "coAgent": {
+    "address": null,
+    "contact": {
+      "cell": null,
+      "email": "coagent@example.com",
+      "office": "(556) 750-9377"
+    },
+    "firstName": null,
+    "id": "ACME12",
+    "lastName": null,
+    "modified": null,
+    "officeMlsId": null
+  },
+  "disclaimer": "This information is believed to be accurate, but without warranty.",
+  "geo": {
+    "county": "North",
+    "directions": "From 290 exit Barker Cypress to left on Tuckerton, right on Danbury Bridge, right on Bending Post, right on Driftwood Prairie",
+    "lat": 29.689418,
+    "lng": -95.474464,
+    "marketArea": "Spring/Klein"
+  },
+  "internetAddressDisplay": null,
+  "internetEntireListingDisplay": null,
+  "leaseTerm": null,
+  "leaseType": "FullServ",
+  "listDate": "2011-05-23T18:50:30.184391Z",
+  "listPrice": 20714261,
+  "listingId": "49699701",
+  "mls": {
+    "area": "Spring/Klein",
+    "areaMinor": null,
+    "daysOnMarket": 862,
+    "originalEntryTimestamp": null,
+    "originatingSystemName": null,
+    "status": "Active",
+    "statusText": "\u00bd~\u0094Y\u0090i"
+  },
+  "mlsId": 1005192,
+  "modified": "2015-11-14T17:57:26.262392Z",
+  "office": {
+    "brokerid": null,
+    "contact": {
+      "cell": null,
+      "email": "info-office@example.com",
+      "office": "(582) 242-9591"
+    },
+    "name": null,
+    "servingName": null
+  },
+  "originalListPrice": null,
+  "ownership": null,
+  "photos": [
+    "https://s3-us-west-2.amazonaws.com/cdn.simplyrets.com/properties/trial/home9.jpg",
+    "https://s3-us-west-2.amazonaws.com/cdn.simplyrets.com/properties/trial/home-inside-9.jpg"
+  ],
+  "privateRemarks": "This property is a trial property to test the SimplyRETS. Private agent remarks will be included in this field for use in the SimplyRETS REST API. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+  "property": {
+    "accessibility": "Manned Gate",
+    "acres": null,
+    "additionalRooms": "Recreation,Master Bedroom,See Remarks",
+    "area": 1043,
+    "areaSource": "Floorplans",
+    "bathrooms": null,
+    "bathsFull": 5,
+    "bathsHalf": 6,
+    "bathsThreeQuarter": null,
+    "bedrooms": 2,
+    "construction": "In Kitchen,Stackable,Washer Included",
+    "cooling": null,
+    "exteriorFeatures": "Back Yard Fenced, Covered Patio/Deck, Patio/Deck",
+    "fireplaces": 1,
+    "flooring": null,
+    "foundation": "Slab",
+    "garageSpaces": 8.74556425245327,
+    "heating": "Radiant Heat",
+    "interiorFeatures": "Drapes/Curtains/Window Cover, Fire/Smoke Alarm, High Ceiling, Island Kitchen",
+    "laundryFeatures": "Area,Electric Dryer Hookup,Individual Room,Washer Hookup",
+    "lotDescription": "Private Backyard",
+    "lotSize": "127X146",
+    "lotSizeArea": null,
+    "lotSizeAreaUnits": null,
+    "maintenanceExpense": null,
+    "occupantName": null,
+    "occupantType": null,
+    "ownerName": null,
+    "parking": {
+      "description": "Garage Door Opener,Public,Garage,Side by Side",
+      "leased": null,
+      "spaces": 6
+    },
+    "pool": "Association,Private,In Ground",
+    "roof": "Tile",
+    "stories": 3,
+    "style": "Traditional",
+    "subType": null,
+    "subTypeText": null,
+    "subdivision": "Waterstone Springs",
+    "type": "RES",
+    "view": "Golf Course",
+    "water": null,
+    "yearBuilt": 1998
+  },
+  "remarks": "This property is a trial property to test the SimplyRETS. This field will include remarks or descriptions from your RETS feed intended for public view. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+  "sales": {
+    "agent": {
+      "address": null,
+      "contact": null,
+      "firstName": "Buffy",
+      "id": "blong",
+      "lastName": "Long",
+      "modified": null,
+      "officeMlsId": "ACME12"
+    },
+    "closeDate": "1996-10-21T15:15:54.171139Z",
+    "closePrice": 17946033,
+    "contractDate": null,
+    "office": {
+      "brokerid": "ACME12",
+      "contact": null,
+      "name": "Acme Brokerage",
+      "servingName": "Acme Brokerage"
+    }
+  },
+  "school": {
+    "district": null,
+    "elementarySchool": "HAYES",
+    "highSchool": "Cy Creek",
+    "middleSchool": "FALCON PASS"
+  },
+  "showingContactName": null,
+  "showingContactPhone": null,
+  "showingInstructions": "The showing instructions for this trial property are brought to you by the SimplyRETS team. This field will include any showing remarks for the given listing in your RETS feed. Enjoy!",
+  "specialListingConditions": null,
+  "tax": {
+    "id": "593-723-781-8056",
+    "taxAnnualAmount": 3180,
+    "taxYear": 1981
+  },
+  "terms": "Conventional",
+  "virtualTourUrl": null
+}

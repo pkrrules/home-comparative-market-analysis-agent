@@ -1,0 +1,24 @@
+{
+  "expires": "2026-09-01T03:00:18.479432708Z",
+  "fields": {
+    "areaMinor": [],
+    "cities": [],
+    "counties": [],
+    "features": [],
+    "neighborhoods": [],
+    "status": [
+      "Active",
+      "ComingSoon",
+      "Pending",
+      "ActiveUnderContract",
+      "Closed"
+    ],
+    "type": [
+      "Residential",
+      "Rental",
+      "Condominium",
+      "Townhome"
+    ]
+  },
+  "lastUpdate": "2026-08-30T03:00:18.479432708Z"
+}
