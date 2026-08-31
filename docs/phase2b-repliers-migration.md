@@ -135,7 +135,8 @@ the frozen sample.
 
 ## Test coverage
 
-`python3 -m unittest discover -s tests` — 52 tests, all against frozen
+At Phase 2b completion, `python3 -m unittest discover -s tests` contained
+52 tests, all against frozen
 fixtures (no network): 18 new/updated for Repliers (mapping, data agent,
 validation's Repliers-vocabulary type/subtype cases), 34 retained
 unchanged for the archived SimplyRETS path. A live end-to-end check

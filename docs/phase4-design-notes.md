@@ -121,7 +121,8 @@ says so; a subject with zero available candidates runs all six steps
 
 ## Test coverage
 
-`.venv/bin/python -m unittest discover -s tests` — 91 tests: 13 new
+At Phase 4 completion, `.venv/bin/python -m unittest discover -s tests`
+contained 91 tests: 13 new
 (`test_report.py`, `test_orchestrator.py`, the latter using a small
 `FakeProvider` test double rather than the real fixtures, so every
 approve/decline/exhausted/unknown-subject branch is exercised

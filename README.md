@@ -61,7 +61,7 @@ authentication, rate limit, timeout, network connection, incomplete subject
 data, invalid MLS number, no comparable evidence, and checkpoint-resume
 failure. Recoverable live failures provide retry and one-click fixture-mode
 actions. See [docs/demo-evaluation.md](docs/demo-evaluation.md) for the
-ten-case technical evaluation and pending human-review protocol.
+ten-case technical evaluation and completed human-review result.
 
 The result screen places a deterministic evidence-confidence banner above
 the briefing. All six preset subjects have frozen regression expectations
@@ -71,6 +71,9 @@ Opens in your browser. Defaults to the frozen fixture data source (no API
 quota used, reliable for repeated demos) with a curated "try an example"
 subject picker and fixed 2026-03-17 analysis date — flip to live Repliers in the sidebar any time. See
 [docs/phase5-design-notes.md](docs/phase5-design-notes.md).
+
+For a repeatable recorded walkthrough, use
+[docs/loom-demo-script.md](docs/loom-demo-script.md).
 
 Repliers requires your own signup and API key (`REPLIERS-API-KEY` header).
 SimplyRETS's public demo credentials (`simplyrets`/`simplyrets`) still work
@@ -112,7 +115,7 @@ you want to run it).
 ## Phase 2: canonical schema, provider interface, validation & dedup
 
 ```bash
-python3 -m unittest discover -s tests -v   # 52 tests, all against fixtures — no network
+.venv/bin/python -m unittest discover -s tests -v
 ```
 
 ```python
@@ -137,7 +140,7 @@ logic are provider-agnostic and didn't need to change in the migration.
 ## Phase 3: comparable analysis engine (Agent 2)
 
 ```bash
-.venv/bin/python -m unittest discover -s tests -v   # or system python3 — 78 tests, no network either way
+.venv/bin/python -m unittest discover -s tests -v
 ```
 
 ```python
@@ -150,7 +153,7 @@ from comparable_engine import fetch_and_evaluate, SEARCH_EXPANSION_STEPS
 
 agent = PropertyDataAgent(RepliersProvider(), map_repliers_listing)
 subject = agent.find_subject("CAR3006094")
-analysis_date = date.today()  # or a dataset-derived date — see phase1-repliers-audit.md §9
+analysis_date = date.today()  # live mode; fixture mode uses RepliersFixtureProvider().analysis_date
 
 for step in SEARCH_EXPANSION_STEPS:
     result = fetch_and_evaluate(agent, subject, step, analysis_date)
@@ -161,16 +164,15 @@ for step in SEARCH_EXPANSION_STEPS:
 
 See [docs/phase3-design-notes.md](docs/phase3-design-notes.md) for the
 eligibility rules, the deterministic scoring formula and its weights, the
-confidence model, and a real run against frozen data reproducing the
-project plan's own human-in-the-loop example (0 comps at 3mi/90d → 2 at
-5mi/90d → 10 at 5mi/6mo). Agent 2 evaluates one search step at a time and
-does not decide on its own to expand — that pause-for-approval loop is
-Phase 4's job.
+confidence model, and a fixture-backed Wonderwood run producing 0 → 1 → 2
+→ 10 comparables. Agent 2 evaluates one search step at a time; the
+orchestrator automatically expands radius and pauses before widening the
+sale-date window.
 
 ## Phase 4: LangGraph orchestration & human-in-the-loop (Agent 3)
 
 ```bash
-.venv/bin/python -m unittest discover -s tests -v   # 91 tests — needs langgraph, so venv-only from here
+.venv/bin/python -m unittest discover -s tests -v   # needs langgraph, so use the venv
 ```
 
 ```python
@@ -201,14 +203,14 @@ only simulates with a callback. See
 shape, two real bugs caught while wiring it up (checkpoint serialization
 silently corrupting state; a fixture-provider/limit interaction that
 produced a misleadingly "no comparables anywhere" result), and a verified
-end-to-end run reproducing Phase 3's exact numbers through two real
-interrupt/resume pauses.
+end-to-end run reproducing Phase 3's exact numbers through automatic radius
+changes and a real temporal-approval interrupt.
 
 ## Phase 5: Streamlit briefing UI
 
 ```bash
 .venv/bin/streamlit run app.py                       # the real app
-.venv/bin/python -m unittest discover -s tests -v     # 98 tests total (7 new, via Streamlit's AppTest — no browser needed)
+.venv/bin/python -m unittest discover -s tests -v     # 110 tests, including Streamlit AppTest coverage
 ```
 
 The UI drives `orchestrator.py`'s graph directly with real button clicks
@@ -229,3 +231,7 @@ and orchestration/reporting), stateful LangGraph
 orchestration, conditional search expansion, human-in-the-loop decisions,
 deterministic comparable analysis, structured report generation, and a
 Streamlit front end.
+
+Current verification baseline: **110 tests passing** with no network calls
+from the automated suite. The OpenAI reporting path is mocked in tests and
+has also been validated separately against the live Responses API.

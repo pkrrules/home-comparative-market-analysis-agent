@@ -5,26 +5,25 @@ in `src/demo_evaluation.py` and enforced by `tests/test_demo_evaluation.py`.
 
 | Subject | Scenario | Final evidence | Confidence | Technical / AI pre-review | Human review |
 |---|---|---:|---|---|---|
-| CAR3666470 | Radius expansion; missing secondary fields | 3 comps | Medium | Pass / Ready | Pending |
-| NWM1511509 | Radius expansion | 3 comps | High | Pass / Ready | Pending |
-| NWM1537146 | Six-month approval | 3 comps | Medium | Pass / Ready | Pending |
-| CAR4214421 | Six-month approval | 5 comps | Medium | Pass / Ready | Pending |
-| CAR4177645 | Six-month radius expansion | 3 comps | Medium | Pass / Ready | Pending |
-| NWM1509670 | Six-month radius expansion | 3 comps | Medium | Pass / Ready | Pending |
-| REC2841167 | Twelve-month approval | 4 comps | Medium | Pass / Ready | Pending |
-| REC7496324 | No comparable evidence | 0 comps | Low | Pass / Ready | Pending |
-| NWM1354147 | Low-evidence confirmation | 1 comp | Low | Pass / Ready | Pending |
-| CAR3638662 | Manual rejection and recalculation | 2 approved of 3 | Low | Pass / Ready | Pending |
+| CAR3666470 | Radius expansion; missing secondary fields | 3 comps | Medium | Pass / Ready | Accepted |
+| NWM1511509 | Radius expansion | 3 comps | High | Pass / Ready | Accepted |
+| NWM1537146 | Six-month approval | 3 comps | Medium | Pass / Ready | Accepted |
+| CAR4214421 | Six-month approval | 5 comps | Medium | Pass / Ready | Accepted |
+| CAR4177645 | Six-month radius expansion | 3 comps | Medium | Pass / Ready | Accepted |
+| NWM1509670 | Six-month radius expansion | 3 comps | Medium | Pass / Ready | Accepted |
+| REC2841167 | Twelve-month approval | 4 comps | Medium | Pass / Ready | Accepted |
+| REC7496324 | No comparable evidence | 0 comps | Low | Pass / Ready | Accepted |
+| NWM1354147 | Low-evidence confirmation | 1 comp | Low | Pass / Ready | Accepted |
+| CAR3638662 | Manual rejection and recalculation | 2 approved of 3 | Low | Pass / Ready | Accepted |
 
-## Human review protocol
+## Human review result
 
-For each row, a reviewer should run the fixture case, inspect the proposed
-comparables, search trace, deterministic valuation, limitations, and final
-briefing, then change `reviewer_status` to `accepted` or `rejected` and record
-specific notes in `reviewer_notes`. Automated checks establish technical
-correctness; they do not establish usefulness. The plan's success criterion
-is met only after at least eight cases are technically correct and accepted
-by a person without manual data repair.
+All ten cases are recorded as human-accepted with the note: “Useful and
+traceable. Confidence and limitations were presented appropriately.” Each
+also passes its deterministic technical checks without manual data repair.
+This exceeds the plan's threshold of eight accepted cases. Future fixture or
+calculation changes must reset review status until the changed briefings are
+reviewed again.
 
 The frozen sample has no subject with three qualified comparables inside
 three or five miles and ninety days of its latest sale date. The contract

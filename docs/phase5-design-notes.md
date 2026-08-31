@@ -116,8 +116,8 @@ logic. Live failures offer an in-app switch to fixtures; checkpoint failures
 offer a clean restart; invalid subjects and low/no evidence have distinct
 messages. The full ten-case contract now freezes approval points, proposal
 and approval IDs, raw valuation inputs, outputs, confidence, and briefing
-checks. Human usefulness review remains explicitly pending in
-`docs/demo-evaluation.md`.
+checks. All ten cases are technically passing and recorded as human-accepted
+in `docs/demo-evaluation.md`.
 
 The completed-result view also renders a concise high/moderate/low evidence
 banner before the briefing. Its classification comes from the same

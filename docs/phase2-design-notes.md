@@ -1,5 +1,9 @@
 # Phase 2 — Canonical Schema, Provider Interface, Validation & Dedup
 
+> Historical phase record. The active implementation is Repliers-backed;
+> provider migration details are in `phase2b-repliers-migration.md` and the
+> current end-to-end behavior is summarized in the README.
+
 Implements the `SimplyRETS -> Provider interface -> Canonical property
 schema -> Validation and deduplication` slice of the architecture, i.e.
 the data half of Agent 1 (Property and Data Agent).
@@ -11,8 +15,8 @@ the data half of Agent 1 (Property and Data Agent).
 | [src/canonical_schema.py](../src/canonical_schema.py) | `CanonicalProperty` and its sub-dataclasses; `FieldStatus`/`FieldFlag` |
 | [src/provider.py](../src/provider.py) | `PropertyDataProvider` — the app-tailored interface |
 | [src/simplyrets_provider.py](../src/simplyrets_provider.py) | Live implementation, wraps `SimplyRETSClient` |
-| [src/fixture_provider.py](../src/fixture_provider.py) | Frozen-fixture implementation — no network, used by tests and offline demo runs |
-| [src/mapping.py](../src/mapping.py) | Raw SimplyRETS dict -> `CanonicalProperty` (pure, no judgment calls) |
+| [src/simplyrets_fixture_provider.py](../src/simplyrets_fixture_provider.py) | Archived SimplyRETS frozen-fixture implementation |
+| [src/simplyrets_mapping.py](../src/simplyrets_mapping.py) | Raw SimplyRETS dict -> `CanonicalProperty` (pure, no judgment calls) |
 | [src/validation.py](../src/validation.py) | Per-field present/missing/implausible flagging |
 | [src/dedup.py](../src/dedup.py) | Collapses duplicate records |
 | [src/data_agent.py](../src/data_agent.py) | `PropertyDataAgent` — wires the above into `find_subject` / `load_closed_sales` |

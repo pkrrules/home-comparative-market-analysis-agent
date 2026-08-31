@@ -29,7 +29,7 @@ Coverage is real multi-state (confirmed beyond the sample too: the broad sample 
 
 - `standardStatus=Closed & type=sale & propertyType=Residential`: **19292** total.
 - Close dates in sample range: **2024-03-10** to **2026-03-17**.
-- This is close enough to the real current date that the demonstration clock can plausibly use `datetime.now()` directly instead of a fixed historical analysis date — a first for this project (SimplyRETS' latest close date was 13 years stale). See §9.
+- At audit time this was close enough to consider `datetime.now()`; that conclusion is now superseded by the fixed fixture date documented in §9.
 
 ### 3b. Data-quality findings (this sample dataset)
 
