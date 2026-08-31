@@ -31,12 +31,37 @@ from repliers_mapping import map_repliers_listing  # noqa: E402
 from repliers_provider import RepliersProvider  # noqa: E402
 from repliers_client import RepliersError  # noqa: E402
 from reporting_agent import OpenAIReportingAgent  # noqa: E402
+from failure_messages import FailurePresentation, classify_failure, invalid_subject_message  # noqa: E402
+from report import build_evidence_banner  # noqa: E402
 
 st.set_page_config(page_title="Comparable Home Analysis (Demo)", layout="wide")
 
 FIXTURE_LABEL = "Frozen fixture sample (recommended — no API quota used)"
 LIVE_LABEL = "Live Repliers API (uses your personal quota)"
 FIXTURE_ANALYSIS_DATE = RepliersFixtureProvider().analysis_date
+
+
+def switch_to_fixture() -> None:
+    st.session_state.data_source = FIXTURE_LABEL
+    reset_run()
+
+
+def render_failure(failure: FailurePresentation, *, live_source: bool) -> None:
+    st.error(f"**{failure.title}** — {failure.message}")
+    cols = st.columns(2)
+    if failure.can_retry:
+        with cols[0]:
+            if st.button("Retry / start over", key=f"retry_{failure.code}", width="stretch"):
+                reset_run()
+                st.rerun()
+    if live_source and failure.can_use_fixture:
+        with cols[1]:
+            st.button(
+                "Switch to frozen demonstration dataset",
+                key=f"fixture_{failure.code}",
+                on_click=switch_to_fixture,
+                width="stretch",
+            )
 
 
 @st.cache_resource(show_spinner=False)
@@ -113,7 +138,7 @@ with st.sidebar:
 try:
     graph = get_graph(data_source)
 except Exception as e:  # noqa: BLE001 — e.g. REPLIERS_API_KEY not set for the live source
-    st.error(f"Could not initialize the {data_source} data source: {e}")
+    render_failure(classify_failure(e, "initialization"), live_source=data_source == LIVE_LABEL)
     st.stop()
 
 run_clicked = st.button("Run analysis", type="primary", disabled=not subject_id)
@@ -144,24 +169,13 @@ if run_clicked:
     try:
         result = graph.invoke(initial_state(subject_id, analysis_date), config=config)
     except Exception as e:  # noqa: BLE001 — surface any live-API/network error to the UI, not a crash
-        st.session_state.error = str(e)
+        st.session_state.error = classify_failure(e, "analysis")
         st.session_state.stage = "idle"
     else:
         _accept_graph_result(result)
 
 if st.session_state.error:
-    message = st.session_state.error
-    if "REPLIERS_API_KEY" in message:
-        message = "A Repliers API key is required for live mode. Add REPLIERS_API_KEY or use fixture mode."
-    elif "429" in message:
-        message = "The Repliers rate limit was reached. Wait for the quota window or use fixture mode."
-    elif "401" in message or "403" in message:
-        message = "Repliers authentication failed. Check the API key or use fixture mode."
-    elif "timeout" in message.lower():
-        message = "The Repliers request timed out. Retry or use fixture mode."
-    st.error(f"Analysis failed: {message}")
-    if data_source == LIVE_LABEL:
-        st.info("Recovery: switch Data source to the frozen demonstration dataset.")
+    render_failure(st.session_state.error, live_source=data_source == LIVE_LABEL)
 
 working = st.session_state.working_state
 if working and working.get("subject"):
@@ -187,7 +201,7 @@ if st.session_state.stage == "awaiting_approval":
         try:
             result = graph.invoke(Command(resume=answer), config=config)
         except Exception as e:  # noqa: BLE001
-            st.session_state.error = str(e)
+            st.session_state.error = classify_failure(e, "checkpoint")
             st.session_state.stage = "idle"
             return
         _accept_graph_result(result)
@@ -233,19 +247,43 @@ if st.session_state.stage == "awaiting_review":
                 result = graph.invoke(Command(resume=answer), config=config)
                 _accept_graph_result(result)
             except Exception as e:  # noqa: BLE001
-                st.session_state.error = f"Graph resume/checkpoint failure: {e}"
+                st.session_state.error = classify_failure(e, "checkpoint")
                 st.session_state.stage = "idle"
             st.rerun()
 if st.session_state.stage == "done" and st.session_state.final_state:
     final = st.session_state.final_state
     if final["status"] in {"no_subject", "invalid_subject"}:
-        st.error(final["briefing"])
+        if final["status"] == "no_subject":
+            failure = invalid_subject_message(final["subject_identifier"])
+        else:
+            missing = []
+            subject = final["subject"]
+            if subject.geo.lat is None or subject.geo.lng is None:
+                missing.append("coordinates")
+            if not subject.characteristics.living_area_sqft:
+                missing.append("living area")
+            failure = invalid_subject_message(final["subject_identifier"], missing)
+        render_failure(failure, live_source=data_source == LIVE_LABEL)
     else:
         result = final["last_result"]
         m1, m2, m3 = st.columns(3)
         m1.metric("Comparables selected", len(result.selected))
         m2.metric("Search steps tried", sum(1 for e in final["expansion_log"] if e.kind == "step"))
         m3.metric("Sufficient (≥3 found)", "Yes" if result.sufficient else "No")
+
+        banner = build_evidence_banner(final["subject"], result.selected)
+        banner_text = f"**{banner.title}.** {banner.message}"
+        if banner.level == "high":
+            st.success(banner_text)
+        elif banner.level == "medium":
+            st.warning(banner_text)
+        else:
+            st.error(banner_text)
+
+        if not result.selected:
+            st.warning("No qualified comparables were found. The report documents the attempted searches but does not provide a value indication.")
+        elif not result.sufficient:
+            st.warning("Low evidence: fewer than three comparables were explicitly approved. Treat the result with additional caution.")
 
         st.markdown(final["briefing"])
         if final.get("reporting_status") == "AI narrative generated":

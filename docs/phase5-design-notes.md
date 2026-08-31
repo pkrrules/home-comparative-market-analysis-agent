@@ -107,3 +107,19 @@ rejects output containing digits, currency symbols, or percentages. The
 model output is appended to—not substituted for—the checked deterministic
 briefing. Missing credentials, HTTP errors, malformed output, and constraint
 violations all produce the same complete deterministic fallback.
+
+## Failure recovery and formal evaluation
+
+Failure classification is centralized in `src/failure_messages.py`, keeping
+provider status codes and network exception types out of Streamlit rendering
+logic. Live failures offer an in-app switch to fixtures; checkpoint failures
+offer a clean restart; invalid subjects and low/no evidence have distinct
+messages. The full ten-case contract now freezes approval points, proposal
+and approval IDs, raw valuation inputs, outputs, confidence, and briefing
+checks. Human usefulness review remains explicitly pending in
+`docs/demo-evaluation.md`.
+
+The completed-result view also renders a concise high/moderate/low evidence
+banner before the briefing. Its classification comes from the same
+deterministic valuation summary as the report, so UI presentation cannot
+invent or override confidence.

@@ -5,7 +5,8 @@ import _pathfix  # noqa: F401
 from canonical_schema import Address, Attribution, CanonicalProperty, Characteristics, GeoLocation, Transaction
 from comparable_engine import SEARCH_EXPANSION_STEPS
 from data_agent import PropertyDataAgent
-from orchestrator import build_expansion_question, build_graph, run_interactive
+from orchestrator import build_expansion_question, build_graph, initial_state, run_interactive
+from langgraph.types import Command
 from provider import PropertyDataProvider
 from validation import flag_fields
 
@@ -14,7 +15,7 @@ SUBJECT_LAT, SUBJECT_LNG = 35.0, -80.8
 MILES_PER_DEG_LAT = 69.0
 
 
-def make_property(listing_id, lat=SUBJECT_LAT, close_date="2026-02-20") -> CanonicalProperty:
+def make_property(listing_id, lat=SUBJECT_LAT, close_date="2026-02-20", close_price=300_000) -> CanonicalProperty:
     prop = CanonicalProperty(
         source="test", source_listing_id=listing_id,
         address=Address(full=f"{listing_id} St", city="Charlotte", state="NC", postal_code="28202"),
@@ -23,7 +24,7 @@ def make_property(listing_id, lat=SUBJECT_LAT, close_date="2026-02-20") -> Canon
             property_type="Residential", bedrooms=3, baths_full=2,
             living_area_sqft=2000, lot_size_area=6000, lot_size_units="sqft", year_built=2005,
         ),
-        transaction=Transaction(status="Closed", list_price=294_000, close_price=300_000, close_date=close_date),
+        transaction=Transaction(status="Closed", list_price=close_price * .98, close_price=close_price, close_date=close_date),
         attribution=Attribution(),
     )
     flag_fields(prop)
@@ -72,6 +73,28 @@ class TestSufficientAtFirstStep(unittest.TestCase):
         self.assertEqual(len(final["last_result"].selected), 3)
         self.assertTrue(final["last_result"].sufficient)
         self.assertEqual(len(final["expansion_log"]), 1)
+
+    def test_manual_rejection_controls_final_report_and_preserves_proposal(self):
+        subject = make_property("SUBJ")
+        candidates = [make_property(f"C{i}", lat=lat_for_miles(1), close_price=280_000 + i * 10_000) for i in range(3)]
+        agent = PropertyDataAgent(FakeProvider(subject, candidates), identity_map)
+        graph = build_graph(agent, provider_limit=100)
+        config = {"configurable": {"thread_id": "t-manual-rejection"}}
+        paused = graph.invoke(initial_state("SUBJ", ANALYSIS_DATE), config=config)
+        payload = paused["__interrupt__"][0].value
+        rejected_id = payload["comparables"][0]["id"]
+        approved_ids = [row["id"] for row in payload["comparables"][1:]]
+        final = graph.invoke(Command(resume={
+            "selected_ids": approved_ids,
+            "rejection_reasons": {rejected_id: "Reviewer considered this sale less representative."},
+            "confirm_low_evidence": True,
+        }), config=config)
+
+        self.assertEqual(len(final["proposed_result"].selected), 3)
+        self.assertEqual(final["approved_comparable_ids"], approved_ids)
+        self.assertEqual(final["rejection_reasons"][rejected_id], "Reviewer considered this sale less representative.")
+        self.assertEqual(final["briefing_facts"].selected_ids, approved_ids)
+        self.assertNotIn(f"`{rejected_id}`", final["briefing"])
 
 
 class TestExpansionApproved(unittest.TestCase):

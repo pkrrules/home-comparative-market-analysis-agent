@@ -96,6 +96,23 @@ class ValuationSummary:
     confidence: str
 
 
+@dataclass(frozen=True)
+class EvidenceBanner:
+    level: str
+    title: str
+    message: str
+
+
+def build_evidence_banner(subject: CanonicalProperty, selected: list) -> EvidenceBanner:
+    valuation = calculate_valuation(subject, selected)
+    count = len(selected)
+    if valuation.confidence == "high":
+        return EvidenceBanner("high", "High evidence confidence", f"{count} approved comparables have complete core and secondary evidence with no flagged valuation outliers.")
+    if valuation.confidence == "medium":
+        return EvidenceBanner("medium", "Moderate evidence confidence", f"{count} approved comparables support a calculation, but missing secondary fields or outlier flags limit interpretation.")
+    return EvidenceBanner("low", "Low evidence confidence", f"Only {count} approved comparable(s) remain. The result is traceable but should not be treated as strong market evidence.")
+
+
 def calculate_valuation(subject: CanonicalProperty, selected: list) -> ValuationSummary:
     """Reproducible robust valuation. Obvious $/sqft outliers (1.5 IQR)
     are flagged and excluded from the weighted indication, never hidden."""

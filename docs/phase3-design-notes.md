@@ -20,14 +20,12 @@ though a live sanity check against real frozen data is below).
 ## Decisions worth recording
 
 **Agent 2 evaluates one search step; it does not loop through
-`SEARCH_EXPANSION_STEPS` itself.** The four steps —
-`(3mi,90d) → (5mi,90d) → (5mi,6mo) → (5mi,12mo)` — are defined as public
-constants matching the project plan's own human-in-the-loop dialogue
-verbatim, but *deciding* to move to the next step is Agent 3 /
-LangGraph's job (Phase 4), because that decision needs to pause for human
-approval between steps. `evaluate_candidates` (and `fetch_and_evaluate`)
-does exactly one step and returns whether it was `sufficient` (≥3
-selected); nothing in this module auto-advances.
+`SEARCH_EXPANSION_STEPS` itself.** The six steps are `(3mi,90d) →
+(5mi,90d) → (10mi,90d) → (5mi,6mo) → (10mi,6mo) →
+(10mi,12mo)`. Agent 3/LangGraph decides whether to advance: radius-only
+expansions are automatic, while a wider time window pauses for approval.
+`evaluate_candidates` and `fetch_and_evaluate` still execute exactly one
+step and report whether at least three candidates qualify.
 
 **Implausible core-valuation fields are excluded outright, not
 downweighted.** A candidate whose `close_price` or `living_area_sqft` is
@@ -83,15 +81,13 @@ Charlotte fixture sample, subject `CAR3006094` (447 Wonderwood Drive):
 
 ```
 3 miles, 90 days   -> 0 selected  (insufficient)
-5 miles, 90 days   -> 2 selected  (insufficient)
+5 miles, 90 days   -> 1 selected  (insufficient)
+10 miles, 90 days  -> 2 selected  (insufficient)
 5 miles, 6 months  -> 10 selected (sufficient)
 ```
 
-This is the exact shape of the project plan's own human-in-the-loop
-example ("Only two qualified comparables were found within three miles
-and 90 days... may the search expand to five miles?"), produced from real
-data rather than asserted in the abstract — a genuine, not contrived,
-demonstration of why progressive expansion is needed on this dataset.
+This fixture-backed path demonstrates both automatic geographic expansion
+and approved temporal expansion without relying on the calendar date.
 # Demo-policy update (2026-08-30)
 
 The fixture demo now uses the intentional MVP sequence: 3 mi/90 days,

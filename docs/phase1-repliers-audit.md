@@ -83,7 +83,7 @@ Unlike SimplyRETS (where these flags were null on every trial record), Repliers'
 ## 9. Recommended demonstration clock
 
 - Latest `soldDate` in this sample: **2026-03-17** (~166 days before real-today).
-- Because this is close to the real current date (unlike SimplyRETS' 13-year-stale feed), the app may use **today's real date** as the analysis date, computing 90-day/6-month/12-month windows against `datetime.now()` directly — while still disclosing prominently that the underlying records are Repliers sample data, not real transactions (see §0). This satisfies the original plan's own fallback clause: *'If the demo dataset contains suitable dates relative to the real current date, the system may use today instead — determined by audit, not assumed.'*
+- Historical audit conclusion: the sample was initially close enough to use the real date. **Superseded for fixture mode:** the application now locks fixture analysis to the dataset's latest valid close date, **2026-03-17**, so results remain stable. Only live mode defaults to today.
 
 ## 10. Suggested demo subject properties ("Try an example") — live-validated
 

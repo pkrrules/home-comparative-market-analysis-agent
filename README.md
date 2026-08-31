@@ -56,6 +56,17 @@ reporting model defaults to `gpt-5.4-mini` and can be changed with
 subscription is not used as application credentials. Without a valid key,
 the complete deterministic briefing is generated normally.
 
+Expected live-source failures are classified separately: missing key,
+authentication, rate limit, timeout, network connection, incomplete subject
+data, invalid MLS number, no comparable evidence, and checkpoint-resume
+failure. Recoverable live failures provide retry and one-click fixture-mode
+actions. See [docs/demo-evaluation.md](docs/demo-evaluation.md) for the
+ten-case technical evaluation and pending human-review protocol.
+
+The result screen places a deterministic evidence-confidence banner above
+the briefing. All six preset subjects have frozen regression expectations
+for search path, approval points, and selected comparable IDs.
+
 Opens in your browser. Defaults to the frozen fixture data source (no API
 quota used, reliable for repeated demos) with a curated "try an example"
 subject picker and fixed 2026-03-17 analysis date — flip to live Repliers in the sidebar any time. See

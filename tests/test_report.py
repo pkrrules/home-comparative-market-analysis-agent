@@ -4,7 +4,7 @@ from datetime import date, timedelta
 import _pathfix  # noqa: F401
 from canonical_schema import Address, Attribution, CanonicalProperty, Characteristics, GeoLocation, Transaction
 from comparable_engine import SearchStep, evaluate_candidates
-from report import ExpansionLogEntry, check_briefing, generate_briefing
+from report import ExpansionLogEntry, build_evidence_banner, calculate_valuation, check_briefing, generate_briefing
 from validation import flag_fields
 
 ANALYSIS_DATE = date(2026, 3, 1)
@@ -85,6 +85,35 @@ class TestGenerateAndCheckBriefing(unittest.TestCase):
         log = [ExpansionLogEntry(kind="step", step_label=STEP.label, found=0, sufficient=False)]
         text, _ = generate_briefing(subject, ANALYSIS_DATE, log, result)
         self.assertIn("outside search radius", text)
+
+
+class TestRobustValuation(unittest.TestCase):
+    def test_obvious_ppsf_outlier_is_flagged_and_excluded(self):
+        subject = make_property("SUBJ", living_area=2000)
+        candidates = [
+            make_property("C100", living_area=2000, close_price=200_000),
+            make_property("C105", living_area=2000, close_price=210_000),
+            make_property("C110", living_area=2000, close_price=220_000),
+            make_property("OUTLIER", living_area=2000, close_price=2_000_000),
+        ]
+        result = evaluate_candidates(subject, candidates, STEP, ANALYSIS_DATE)
+        valuation = calculate_valuation(subject, result.selected)
+
+        self.assertEqual(valuation.outlier_ids, ["OUTLIER"])
+        self.assertAlmostEqual(valuation.weighted_price_per_sqft, 105.0)
+        self.assertAlmostEqual(valuation.point_estimate, 210_000.0)
+        self.assertEqual(valuation.confidence, "medium")
+
+    def test_evidence_banner_tracks_valuation_confidence(self):
+        subject = make_property("SUBJ")
+        high_candidates = [make_property(f"H{i}") for i in range(3)]
+        for candidate in high_candidates:
+            candidate.characteristics.baths_half = 0
+            flag_fields(candidate)
+        high_result = evaluate_candidates(subject, high_candidates, STEP, ANALYSIS_DATE)
+        low_result = evaluate_candidates(subject, [make_property("ONLY")], STEP, ANALYSIS_DATE)
+        self.assertEqual(build_evidence_banner(subject, high_result.selected).level, "high")
+        self.assertEqual(build_evidence_banner(subject, low_result.selected).level, "low")
 
 
 if __name__ == "__main__":

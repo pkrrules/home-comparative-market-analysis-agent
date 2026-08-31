@@ -106,20 +106,17 @@ Ran the real graph (via `run_interactive`, callback-driven) against the
 frozen Repliers fixtures, subject `CAR3006094`:
 
 ```
-[interrupt] Only 0 qualified comparables were found within 3 miles and 90 days
-            of the demonstration analysis date. May the search expand to 5 miles?
 [interrupt] Fewer than 3 qualified comparables remain (2 found). May the analysis
             include sales up to six months before the demonstration analysis date?
 -> sufficient at 5 miles, 6 months: 10 selected, all 23 self-checks PASS
 ```
 
-Matches Phase 3's own standalone result for the same subject exactly (0 →
-2 → 10), now produced by the actual LangGraph state machine pausing twice
-for real approval, not a single function call. Also verified: declining
-the first expansion terminates cleanly with an honest "insufficient"
+Matches Phase 3's current standalone result (0 → 1 → 2 → 10), with
+radius changes automatic and the temporal expansion paused for real approval.
+Also verified: declining temporal expansion terminates with an honest "insufficient"
 briefing; an unknown subject id short-circuits straight to a briefing that
-says so; a subject with zero available candidates runs all four steps
-(three approval pauses) and still terminates with a coherent, checked
+says so; a subject with zero available candidates runs all six steps
+(two temporal approval pauses) and still terminates with a coherent, checked
 "no comparables found" briefing rather than looping forever.
 
 ## Test coverage

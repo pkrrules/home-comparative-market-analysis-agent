@@ -54,6 +54,8 @@ class TestApproveToCompletion(unittest.TestCase):
 
         full_text = "\n".join(m.value for m in at.markdown)
         self.assertIn("Comparable Home Analysis", full_text)
+        rendered_alerts = [item.value for item in list(at.success) + list(at.warning) + list(at.error)]
+        self.assertTrue(any("evidence confidence" in value.lower() for value in rendered_alerts))
 
         expander_labels = [e.label for e in at.expander]
         self.assertTrue(any("Report self-check" in label for label in expander_labels))
@@ -101,7 +103,7 @@ class TestUnknownSubject(unittest.TestCase):
         at.sidebar.text_input[0].set_value("NO-SUCH-ID").run()
         [b for b in at.button if b.label == "Run analysis"][0].click().run()
         self.assertFalse(at.exception)
-        self.assertTrue(any("No subject property could be resolved" in e.value for e in at.error))
+        self.assertTrue(any("MLS number was not found" in e.value for e in at.error))
 
 
 if __name__ == "__main__":
